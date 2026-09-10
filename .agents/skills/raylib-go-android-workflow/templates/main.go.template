@@ -1,0 +1,75 @@
+package main
+
+import (
+	"fmt"
+	"runtime"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+// MANDATORY FOR ANDROID:
+// rl.SetMain registers the Go main loop callback with Raylib's C backend
+// and Android's NativeActivity lifecycle.
+func init() {
+	rl.SetMain(main)
+}
+
+func main() {
+	// Enable VSync and hardware acceleration flags
+	rl.SetConfigFlags(rl.FlagVsyncHint)
+
+	// Passing (0, 0) tells Raylib on Android to use the native full screen resolution
+	rl.InitWindow(0, 0, "Raylib-Go Android App")
+	defer rl.CloseWindow()
+
+	rl.SetTargetFPS(60)
+
+	// App state
+	counter := 0
+	var lastTouchPos rl.Vector2
+
+	for !rl.WindowShouldClose() {
+		// Handle Android Back button (rl.KeyBack)
+		if runtime.GOOS == "android" && rl.IsKeyPressed(rl.KeyBack) {
+			// Cleanly terminate loop or navigate back in your UI state
+			break
+		}
+
+		screenWidth := float32(rl.GetScreenWidth())
+		screenHeight := float32(rl.GetScreenHeight())
+		_ = screenHeight
+
+		// Touch / Pointer Input
+		if rl.IsMouseButtonDown(rl.MouseLeftButton) {
+			lastTouchPos = rl.GetMousePosition()
+		}
+		if rl.IsMouseButtonPressed(rl.MouseLeftButton) {
+			counter++
+		}
+
+		// Update logic here
+		// dt := rl.GetFrameTime()
+
+		// Draw Frame
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.RayWhite)
+
+		// Draw Header
+		rl.DrawRectangle(0, 0, int32(screenWidth), 70, rl.SkyBlue)
+		rl.DrawText("Raylib-Go Android App", 20, 20, 28, rl.White)
+
+		// Draw interactive content
+		rl.DrawText("Tap anywhere on screen to increment counter", 40, 120, 22, rl.DarkGray)
+		rl.DrawText(fmt.Sprintf("Taps: %d", counter), 40, 170, 36, rl.Maroon)
+
+		if lastTouchPos.X > 0 || lastTouchPos.Y > 0 {
+			rl.DrawCircleV(lastTouchPos, 30, rl.Fade(rl.Red, 0.6))
+			rl.DrawCircleLines(int32(lastTouchPos.X), int32(lastTouchPos.Y), 30, rl.Maroon)
+		}
+
+		// Draw FPS counter
+		rl.DrawFPS(int32(screenWidth)-100, 20)
+
+		rl.EndDrawing()
+	}
+}
